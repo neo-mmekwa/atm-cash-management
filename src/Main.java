@@ -3,6 +3,7 @@
  */
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -19,6 +20,8 @@ public class Main
         ArrayList<ATM> atms = FileManager.loadATMData("data/atm_transactions.csv");
 
         ATMAnalyzer analyzer = new ATMAnalyzer(atms, calendar);
+        
+        CashShortagePredictor predictor = new CashShortagePredictor(atms,analyzer,calendar);
 
         Scanner scanner = new Scanner(System.in);
 
@@ -51,8 +54,7 @@ public class Main
                     break;
 
                 case 2:
-                    System.out.println();
-                    System.out.println("Cash shortage prediction coming soon");
+                	displayCashShortageMenu(scanner,predictor,atms,calendar);
                     break;
 
                 case 3:
@@ -73,7 +75,9 @@ public class Main
 
         scanner.close();
     }
-
+	
+	//MENUS
+	
     // displays the ATM usage trend analysis menu
     public static void displayTrendAnalysisMenu(Scanner scanner, ATMAnalyzer analyzer, ArrayList<ATM> atms)
     {
@@ -123,6 +127,60 @@ public class Main
         }
     }
 
+    //displays the cash shortage prediction menu
+    public static void displayCashShortageMenu(
+            Scanner scanner,
+            CashShortagePredictor predictor,
+            ArrayList<ATM> atms,
+            CalendarManager calendar)
+    {
+        int option = 0;
+
+        while (option != 3)
+        {
+            System.out.println();
+            System.out.println(
+                    "****************************************");
+            System.out.println(
+                    "       CASH SHORTAGE PREDICTION");
+            System.out.println(
+                    "****************************************");
+            System.out.println();
+
+            System.out.println("1. View ATM Shortage Overview");
+            System.out.println("2. View Individual ATM Prediction");
+            System.out.println("3. Return to Main Menu");
+            System.out.println();
+
+            System.out.print("Select option: ");
+            option = scanner.nextInt();
+           
+            //forecast starts from the day after the historical transaction data ends
+            LocalDateTime predictionDate = predictor.getPredictionDate();
+
+            switch (option)
+            {
+                case 1:
+                    displayShortageOverview(predictor,atms, predictionDate);
+                    break;
+
+                case 2:
+                    displayPredictionATMSelection(scanner, predictor, atms, calendar,predictionDate);
+                    break;
+
+                case 3:
+                    break;
+
+                default:
+                    System.out.println();
+                    System.out.println("Invalid option. Please try again.");
+            }
+        }
+    }
+    
+    
+    //TREND ANALYSIS 
+    
     //displays summary findings from the historical data
     public static void displaySummary(ATMAnalyzer analyzer)
     {
@@ -348,4 +406,182 @@ public class Main
     
 	}
 
+    
+    //CASH SHORTAGE PREDICTION
+    
+    //displays shortage predictions for all ATMs
+    public static void displayShortageOverview(CashShortagePredictor predictor,ArrayList<ATM> atms,LocalDateTime predictionDate)
+    {
+        System.out.println();
+        System.out.println(
+                "****************************************");
+        System.out.println(
+                "          ATM SHORTAGE OVERVIEW");
+        System.out.println(
+                "****************************************");
+        System.out.println();
+
+        System.out.println("Forecast Date: " + predictionDate.toLocalDate());
+
+
+        for (ATM atm : atms)
+        {
+            System.out.println();
+            System.out.println(atm.getAtmID() + " - "+ atm.getLocation());
+
+            System.out.println();
+
+            System.out.printf("Current Cash Balance:           R%,.2f%n",predictor.getCurrentBalance(atm));
+            System.out.printf("Predicted Daily Demand:         R%,.2f%n",predictor.predictDailyDemand(atm, predictionDate));
+
+            System.out.printf("Predicted Depletion Time:       %.1f hours%n",predictor.calculateHoursRemaining(atm, predictionDate));
+            
+            System.out.println("Prediction:                     "+ predictor.getPredictionStatement(atm,predictionDate));
+
+            System.out.println("Risk Level:                     " + predictor.determineRiskLevel(atm, predictionDate));
+            System.out.println("Recommended Action:             " + predictor.determineRecommendedAction( atm,predictionDate));
+            
+            if (predictor.requiresReplenishment(atm,predictionDate))
+            {
+                System.out.printf("Recommended Replenishment:      R%,.2f%n", predictor.calculateReplenishmentAmount(atm,predictionDate));
+            }
+        
+        }
+
+        displayReplenishmentSchedule(predictor, atms, predictionDate);
+    }
+    
+    //displays ATMs in replenishment priority order
+    public static void displayReplenishmentSchedule(CashShortagePredictor predictor, ArrayList<ATM> atms, LocalDateTime predictionDate)
+    {
+        ArrayList<ATM> schedule = new ArrayList<ATM>();
+
+        //only ATMs requiring replenishment
+        for (ATM atm : atms)
+        {
+            if (predictor.requiresReplenishment(atm, predictionDate))
+            {
+                schedule.add(atm);
+            }
+        }
+
+        //sort by predicted depletion time
+        for (int i = 0; i < schedule.size() - 1; i++)
+        {
+            for (int j = i + 1; j < schedule.size(); j++)
+            {
+                double firstHours = predictor.calculateHoursRemaining(schedule.get(i), predictionDate);
+
+                double secondHours =predictor.calculateHoursRemaining( schedule.get(j), predictionDate);
+
+                if (secondHours < firstHours)
+                {
+                    ATM temp = schedule.get(i);
+
+                    schedule.set(i, schedule.get(j));
+
+                    schedule.set(j,temp);
+                }
+            }
+        }
+
+
+        System.out.println();
+        System.out.println(
+                "==============================================================");
+        System.out.println(
+                "                 REPLENISHMENT SCHEDULE");
+        System.out.println(
+                "==============================================================");
+        System.out.println();
+
+        System.out.printf( "%-10s %-10s %-27s %-10s %-20s %-20s%n", "Priority","ATM", "Location", 
+        		"Risk","Recommended By", "Amount");
+
+        System.out.println(
+                "--------------------------------------------------------------------------");
+
+        if (schedule.size() == 0)
+        {
+            System.out.println("No ATMs currently require replenishment within the next 72 hours.");
+
+            return;
+        }
+
+        for (int i = 0; i < schedule.size(); i++)
+        {
+            ATM atm = schedule.get(i);
+
+            System.out.printf("%-10d %-10s %-27s %-10s %-20s R%,.2f%n", (i + 1), atm.getAtmID(), 
+            		atm.getLocation(), predictor.determineRiskLevel(atm,predictionDate),
+            		predictor.getRecommendedBy(atm,  predictionDate), 
+            		predictor.calculateReplenishmentAmount(atm, predictionDate));
+        }
+    }
+    
+    //allows user to select an ATM for shortage prediction
+    public static void displayPredictionATMSelection(Scanner scanner, CashShortagePredictor predictor, ArrayList<ATM> atms,CalendarManager calendar,LocalDateTime predictionDate)
+    {
+        System.out.println();
+        System.out.println("AVAILABLE ATMs");
+        System.out.println();
+
+        for (int i = 0; i < atms.size(); i++)
+        {
+            ATM atm = atms.get(i);
+            System.out.println((i + 1)+ ". "  + atm.getAtmID()  + " - " + atm.getLocation());
+        }
+
+        System.out.println();
+        System.out.print("Select ATM: ");
+
+        int choice = scanner.nextInt();
+
+        if (choice < 1 || choice > atms.size())
+        {
+            System.out.println("Invalid ATM selection.");
+            return;
+        }
+
+        ATM selectedATM =atms.get(choice - 1);
+
+        displayIndividualPrediction( predictor, selectedATM,calendar,predictionDate);
+    }
+    
+    //displays shortage prediction for one ATM
+    public static void displayIndividualPrediction(CashShortagePredictor predictor, ATM atm, CalendarManager calendar, LocalDateTime predictionDate)
+    {
+        System.out.println();
+        System.out.println("****************************************");
+        System.out.println("       " + atm.getAtmID() + " - SHORTAGE PREDICTION");
+        System.out.println("****************************************");
+        System.out.println();
+
+        System.out.println("Location:                       " + atm.getLocation());
+        System.out.println("Forecast Date:                  " + predictionDate.toLocalDate());
+        System.out.println("Forecast Day Type:              " + calendar.getDayType(predictionDate));
+
+        System.out.println();
+
+        System.out.printf("Current Cash Balance:           R%,.2f%n", predictor.getCurrentBalance(atm));
+        System.out.printf("Predicted Daily Demand:         R%,.2f%n", predictor.predictDailyDemand(atm, predictionDate));
+        System.out.printf("Predicted Depletion Time:       %.1f hours%n",predictor.calculateHoursRemaining( atm, predictionDate));
+        
+        System.out.println("Prediction:                     " + predictor.getPredictionStatement(atm,predictionDate));
+
+        System.out.println();
+        System.out.println("RISK ASSESSMENT");
+        System.out.println();
+
+        System.out.println("Risk Level:                     " + predictor.determineRiskLevel(atm, predictionDate));
+        System.out.println("Recommended Action:             " + predictor.determineRecommendedAction(atm,predictionDate));
+        if (predictor.requiresReplenishment(atm,predictionDate))
+        {
+            System.out.printf("Recommended Replenishment:    R%,.2f%n", predictor.calculateReplenishmentAmount(atm,predictionDate));
+        }
+    
+    }
+    
+    
+    
 }
