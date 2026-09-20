@@ -26,7 +26,6 @@ public class CalendarManager
 	//parameterised constructor 
 	public CalendarManager(ArrayList<LocalDate> salaryDates, ArrayList<LocalDate> publicHolidayDates) 
 	{
-		super();
 		this.salaryDates = salaryDates;
 		this.publicHolidayDates = publicHolidayDates;
 	}

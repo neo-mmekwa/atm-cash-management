@@ -49,95 +49,115 @@ public class ATMTransaction
 
 	//accessors and mutators
 	
-	public ATM getAtm() {
+	public ATM getAtm() 
+	{
 		return atm;
 	}
 
-	public void setAtm(ATM atm) {
+	public void setAtm(ATM atm) 
+	{
 		this.atm = atm;
 	}
 
-	public LocalDateTime getDateTime() {
+	public LocalDateTime getDateTime() 
+	{
 		return dateTime;
 	}
 
-	public void setDateTime(LocalDateTime dateTime) {
+	public void setDateTime(LocalDateTime dateTime) 
+	{
 		this.dateTime = dateTime;
 	}
 
-	public double getCashBalance() {
+	public double getCashBalance() 
+	{
 		return cashBalance;
 	}
 
-	public void setCashBalance(double cashBalance) {
+	public void setCashBalance(double cashBalance)
+	{
 		this.cashBalance = cashBalance;
 	}
 
-	public int getR10notes() {
+	public int getR10notes() 
+	{
 		return r10notes;
 	}
 
-	public void setR10notes(int r10notes) {
+	public void setR10notes(int r10notes) 
+	{
 		this.r10notes = r10notes;
 	}
 
-	public int getR20notes() {
+	public int getR20notes()
+	{
 		return r20notes;
 	}
 
-	public void setR20notes(int r20notes) {
+	public void setR20notes(int r20notes) 
+	{
 		this.r20notes = r20notes;
 	}
 
-	public int getR50notes() {
+	public int getR50notes()
+	{
 		return r50notes;
 	}
 
-	public void setR50notes(int r50notes) {
+	public void setR50notes(int r50notes) 
+	{
 		this.r50notes = r50notes;
 	}
 
-	public int getR100notes() {
+	public int getR100notes() 
+	{
 		return r100notes;
 	}
 
-	public void setR100notes(int r100notes) {
+	public void setR100notes(int r100notes) 
+	{
 		this.r100notes = r100notes;
 	}
 
-	public int getR200notes() {
+	public int getR200notes()
+	{
 		return r200notes;
 	}
 
-	public void setR200notes(int r200notes) {
+	public void setR200notes(int r200notes) 
+	{
 		this.r200notes = r200notes;
 	}
 
-	public double getWithdrawalAmount() {
+	public double getWithdrawalAmount() 
+	{
 		return withdrawalAmount;
 	}
 
-	public void setWithdrawalAmount(double withdrawalAmount) {
+	public void setWithdrawalAmount(double withdrawalAmount)
+	{
 		this.withdrawalAmount = withdrawalAmount;
 	}
 
-	public double getDepositAmount() {
+	public double getDepositAmount() 
+	{
 		return depositAmount;
 	}
 
-	public void setDepositAmount(double depositAmount) {
+	public void setDepositAmount(double depositAmount) 
+	{
 		this.depositAmount = depositAmount;
 	}
 
-	public boolean isDowntime() {
+	public boolean isDowntime()
+	{
 		return downtime;
 	}
 
-	public void setDowntime(boolean downtime) {
+	public void setDowntime(boolean downtime)
+	{
 		this.downtime = downtime;
 	}
-
-	
 
 
 }
