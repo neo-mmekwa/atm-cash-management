@@ -19,10 +19,11 @@ public class Main
 
         ArrayList<ATM> atms = FileManager.loadATMData("data/atm_transactions.csv");
 
+        //objects
         ATMAnalyzer analyzer = new ATMAnalyzer(atms, calendar);
-        
         CashShortagePredictor predictor = new CashShortagePredictor(atms,analyzer,calendar);
-
+        DenominationAnalyzer denominationAnalyzer = new DenominationAnalyzer(atms);
+        
         Scanner scanner = new Scanner(System.in);
 
         int option = 0;
@@ -58,8 +59,7 @@ public class Main
                     break;
 
                 case 3:
-                    System.out.println();
-                    System.out.println("Denomination analysis coming soon");
+                	 displayDenominationAnalysis(denominationAnalyzer, analyzer);
                     break;
 
                 case 4:
@@ -582,6 +582,39 @@ public class Main
     
     }
     
+    
+    //DENOMINAITON ANALYSIS
+    
+    //displays denomination usage for each location
+    public static void displayDenominationAnalysis(DenominationAnalyzer denominationAnalyzer,ATMAnalyzer analyzer)
+    {
+        System.out.println();
+        System.out.println("****************************************");
+        System.out.println("          DENOMINATION ANALYSIS");
+        System.out.println("****************************************");
+
+
+        for (String location : analyzer.getLocations())
+        {
+            System.out.println();
+            System.out.println(location.toUpperCase());
+            System.out.println();
+
+            System.out.println("R10 Notes Used:                 " + denominationAnalyzer.getR10Total(location));
+
+            System.out.println("R20 Notes Used:                 " + denominationAnalyzer.getR20Total(location));
+
+            System.out.println("R50 Notes Used:                 " + denominationAnalyzer.getR50Total(location));
+
+            System.out.println("R100 Notes Used:                " + denominationAnalyzer.getR100Total(location));
+
+            System.out.println("R200 Notes Used:                "+ denominationAnalyzer.getR200Total(location));
+
+            System.out.println();
+
+            System.out.println("Most Frequently Used:           " + denominationAnalyzer.getMostUsedDenomination(location));
+        }
+    }
     
     
 }
